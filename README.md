@@ -239,3 +239,17 @@ print('Accuracy average: ', accuracy_sum / 100)
 ```
 
 위와 똑같이 test loader를 이용하여 Test Accuracy를 계산해줍니다.
+
+# Result
+
+![img2](https://github.com/kjo26619/TinyImageNet-Pytorch-VGGNet/blob/main/image/accuracy_vgg.png)
+
+Accuracy는 train은 꾸준히 상승하나 Validation은 일정 이상 올라가면 상승이 조금씩 더뎌지는 것을 확인할 수 있습니다.
+
+이는 epoch가 진행될 수록 overfitting 되고 있음을 의미합니다.
+
+https://github.com/kjo26619/TinyImageNet-Pytorch-VGGNet/blob/main/image/loss_vgg.png)
+
+Loss도 마찬가지로 train은 꾸준히 줄어드나 Validation은 일정 이상 학습이 overfitting 되고 있음을 의미합니다.
+
+어느 순간부터는 Loss가 상승할 수 있는데 이 지점이 Overfitting 지점이라고 볼 수 있습니다.
