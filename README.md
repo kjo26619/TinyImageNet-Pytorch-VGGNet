@@ -61,7 +61,7 @@ def data_load():
         ])
     )
 
-    train_loader = DataLoader(train_set, shuffle=True, batch_size=64, num_workers=8)
+    train_loader = DataLoader(train_set, shuffle=True, batch_size=50, num_workers=8)
 
     test_loader = DataLoader(test_set, shuffle=True)
 
