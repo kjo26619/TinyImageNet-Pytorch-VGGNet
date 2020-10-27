@@ -155,4 +155,87 @@ TinyImageNet이 64x64 이미지여서 실제 VGGNet의 Layer 수와 파라미터
 
 그리고, Dropout은 제가 임의로 추가한 작업이므로 없어도 상관 없습니다.
 
+# TinyImageNet Main Pytorch
 
+```
+train_loader, test_loader = data_load()
+epochs = 20
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+model = vggnet.VGG_Net()
+model = model.to(device)
+
+criterion = torch.nn.CrossEntropyLoss().cuda()
+opt = torch.optim.Adam(model.parameters(), lr=1e-4)
+
+for epoch in range(epochs):
+    running_loss = 0.0
+    total_train = 0
+    correct_train = 0
+    count = 0
+    for i, img in enumerate(train_loader, 0):
+        inputs, labels = img
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        
+        y_pred, feature = model(inputs)
+
+        loss = criterion(y_pred, labels)
+        
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+
+        _, predicted = torch.max(y_pred, 1)
+        total_train += labels.size(0)
+        correct_train += predicted.eq(labels.data).sum().item()
+
+        running_loss += loss.item()
+        train_accuracy = (correct_train / total_train) * 100
+
+        if i % 50 == 49:
+            print('[%d, %5d] loss: %.3f  accuracy : %.3f' %
+                  (epoch + 1, i + 1, running_loss / 50, train_accuracy))
+            running_loss = 0.0
+```
+
+main에서는 먼저 위에서 정의한 data_load를 통해서 TinyImageNet 데이터셋을 가지고 옵니다.
+
+만들어놓은 모델을 가지고 와서 GPU를 사용할 경우 반드시 device를 지정해줘야 합니다. GPU 설정과 CUDA 설치법은 구글에서 찾아보시면 됩니다.
+
+Loss와 optimizer를 지정하고 원하는 epoch를 지정하고 for문을 통해서 epoch 만큼 학습합니다.
+
+for문을 통해서 train_loader의 데이터를 가지고 온 뒤 데이터를 image input과 label로 나눕니다.
+
+image를 입력하고 나온 결과인 y_pred를 통해서 loss를 계산합니다.
+
+opt.zero_grad()는 역전파를 하기 전 변화도를 0으로 만드는 작업입니다.
+
+그리고 역전파를 수행하고, optimizer의 step 함수를 호출하여 매개변수를 갱신합니다.
+
+```
+with torch.no_grad():
+    for test_data in test_loader:
+        img, labels = test_data
+        img = img.cuda()
+
+        out, _ = model(img)
+        _, pred = torch.max(out, 1)
+        pred_item = pred.item()
+        label_item = labels.item()
+        pred_acc = (pred_item == label_item)
+        if pred_acc:
+            correct[label_item] += 1
+        total[label_item] += 1
+        
+accuracy_sum = 0
+for i in range(100):
+    temp = 100 * correct[i] / total[i]
+    print('Accuracy of %5s : %2d %%' % (
+        i, temp))
+    accuracy_sum += temp
+print('Accuracy average: ', accuracy_sum / 100)
+```
+
+위와 똑같이 test loader를 이용하여 Test Accuracy를 계산해줍니다.
