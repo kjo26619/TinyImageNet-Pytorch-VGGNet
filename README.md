@@ -72,7 +72,7 @@ def data_load():
 
 pytorch에서는 torchvision과 DataLoader를 통해서 쉽게 데이터를 불러와서 사용할 수 있습니다.
 
-batch_size는 Mini Batch의 크기를 
+batch_size는 Mini Batch의 크기를 의미합니다. num_workers는 Jaeyeon Baek님의  https://jybaek.tistory.com/799 에서 자세히 알 수 있습니다.
 
 # VGGNet Pytorch
 
