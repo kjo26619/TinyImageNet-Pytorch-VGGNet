@@ -61,7 +61,7 @@ def data_load():
         ])
     )
 
-    train_loader = DataLoader(train_set, shuffle=True, batch_size=50, num_workers=8)
+    train_loader = DataLoader(train_set, shuffle=True, batch_size=64, num_workers=8)
 
     test_loader = DataLoader(test_set, shuffle=True)
 
@@ -71,6 +71,8 @@ def data_load():
 저는 확실한 val 폴더에 있는 사진들이 이미 class로 나뉘어져있어서 그냥 val을 test/validaiton set으로 사용했습니다.
 
 pytorch에서는 torchvision과 DataLoader를 통해서 쉽게 데이터를 불러와서 사용할 수 있습니다.
+
+batch_size는 Mini Batch의 크기를 
 
 # VGGNet Pytorch
 
