@@ -36,5 +36,117 @@ VGGNet은 간단한 구조이지만 높은 효율을 보입니다.
 
 # TinyImageNet Pytorch
 
+TinyImageNet을 사용하기 위해 먼저 다운로드를 받은 뒤 폴더의 위치를 편한 곳에 옮겨둡니다.
+
+그 다음 torchvision에서 dataset을 만드는 것을 지원해주는 ImageFolder와 DataLoader를 사용하여 만듭니다.
+
+```
+import torchvision
+from torch.utils.data import DataLoader
+
+def data_load():
+    train_set = torchvision.datasets.ImageFolder(
+        root='./TinyImageNet/train',
+        transform=torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize([0.4802, 0.4481, 0.3975], [0.2302, 0.2265, 0.2262])
+        ])
+    )
+
+    test_set = torchvision.datasets.ImageFolder(
+        root='./TinyImageNet/val',
+        transform=torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize([0.4802, 0.4481, 0.3975], [0.2302, 0.2265, 0.2262])
+        ])
+    )
+
+    train_loader = DataLoader(train_set, shuffle=True, batch_size=50, num_workers=8)
+
+    test_loader = DataLoader(test_set, shuffle=True)
+
+    return train_loader, test_loader
+```
+
+저는 확실한 val 폴더에 있는 사진들이 이미 class로 나뉘어져있어서 그냥 val을 test/validaiton set으로 사용했습니다.
+
+pytorch에서는 torchvision과 DataLoader를 통해서 쉽게 데이터를 불러와서 사용할 수 있습니다.
+
+# VGGNet Pytorch
+
+```
+import torch.nn as nn
+
+class VGG_Net(nn.Module):
+    def __init__(self):
+        super(VGG_Net, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(3, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.4),
+
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.4),
+
+            nn.Conv2d(128, 256, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.4),
+
+            nn.Conv2d(256, 512, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, 3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.4)
+
+        )
+
+        self.avg_pool = nn.AvgPool2d(3)
+
+        self.fc1 = nn.Linear(512 * 1 * 1, 1028)
+
+        self.fc2 = nn.Linear(1028, 1028)
+
+        self.fc3 = nn.Linear(1028, 512)
+        self.fc_relu = nn.ReLU()
+        self.classifier = nn.Linear(512, 100)
+
+    def forward(self, x):
+        features = self.conv(x)
+        x = self.avg_pool(features)
+        #print(x.shape)
+        x = x.view(features.size(0), -1)
+        x = self.fc1(x)
+        x = self.fc_relu(x)
+        x = self.fc2(x)
+        x = self.fc_relu(x)
+        x = self.fc3(x)
+        x = self.fc_relu(x)
+        x = self.classifier(x)
+
+        return x, features
+```
+
+pytorch에서 지원하는 구조를 사용해도 크게 상관은 없으나 직접 만들어보는 것이 중요하기에 설계해 보았습니다.
+
+pytorch에서는 torch.nn.module을 상속받아서 직접 모델을 구성할 수 있습니다.
+
+클래스의 __init__ 에서 사용할 Layer 구조들을 만들어둡니다.
+
+그리고 def forward(x)를 통해서 Layer를 구성합니다.
 
 
