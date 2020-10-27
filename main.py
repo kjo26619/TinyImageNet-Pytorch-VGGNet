@@ -70,7 +70,7 @@ def main():
             running_loss = 0.0
             total_train = 0
             correct_train = 0
-            
+            count = 0
             for i, img in enumerate(train_loader, 0):
                 inputs, labels = img
                 inputs, labels = inputs.to(device), labels.to(device)
@@ -94,9 +94,11 @@ def main():
                     print('[%d, %5d] loss: %.3f  accuracy : %.3f' %
                           (epoch + 1, i + 1, running_loss / 50, train_accuracy))
                     running_loss = 0.0
+                    
+                count+=1
                 
-                train_accuracy_list.append(train_accuracy)
-                train_loss_list.append(running_loss)
+            train_accuracy_list.append(train_accuracy / count)
+            train_loss_list.append(running_loss / count)
                 
                 
             print("validation ===============================")
