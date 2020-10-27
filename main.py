@@ -45,7 +45,7 @@ def new_plot(title, xlabel, ylabel, data_1, data_2, data_1_label, data_2_label):
 def main():
     train_loader, test_loader = data_load()
     epochs = 20
-    PATH = './TinyImageNet/result2.pt'
+    PATH = './TinyImageNet/vgg_net.pth'
     load_model = False
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
