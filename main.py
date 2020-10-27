@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 torch.cuda.device(0)
 
+
 def data_load():
     train_set = torchvision.datasets.ImageFolder(
         root='./TinyImageNet/train',
@@ -28,6 +29,7 @@ def data_load():
 
     return train_loader, test_loader
 
+
 def new_plot(title, xlabel, ylabel, data_1, data_2, data_1_label, data_2_label):
     plt.figure(figsize=(10,5))
     plt.suptitle(title)
@@ -38,7 +40,6 @@ def new_plot(title, xlabel, ylabel, data_1, data_2, data_1_label, data_2_label):
     plt.legend()
     
     plt.show()
-
 
 
 def main():
@@ -68,6 +69,9 @@ def main():
 
         for epoch in range(epochs):
             running_loss = 0.0
+            temp_loss = 0.0
+            train_accuracy = 0.0
+            temp_accuracy  = 0.0
             total_train = 0
             correct_train = 0
             count = 0
@@ -75,36 +79,37 @@ def main():
                 inputs, labels = img
                 inputs, labels = inputs.to(device), labels.to(device)
 
-                opt.zero_grad()
+                
                 y_pred, feature = model(inputs)
 
                 loss = criterion(y_pred, labels)
-
+                
+                opt.zero_grad()
                 loss.backward()
                 opt.step()
                 
                 _, predicted = torch.max(y_pred, 1)
                 total_train += labels.size(0)
                 correct_train += predicted.eq(labels.data).sum().item()
-
-                running_loss += loss.item()
-                train_accuracy = (correct_train / total_train) * 100
                 
+                temp_loss += loss.item()
+                temp_accuracy += (correct_train / total_train) * 100
+                running_loss += loss.item()
+                train_accuracy += (correct_train / total_train) * 100
+                count+=1
                 if i % 50 == 49:
                     print('[%d, %5d] loss: %.3f  accuracy : %.3f' %
-                          (epoch + 1, i + 1, running_loss / 50, train_accuracy))
-                    running_loss = 0.0
+                          (epoch + 1, i + 1, temp_loss / 50, temp_accuracy / 50))
+                    temp_loss = 0.0
+                    temp_accuracy = 0.0
                     
-                count+=1
-                
             train_accuracy_list.append(train_accuracy / count)
             train_loss_list.append(running_loss / count)
-                
-                
+ 
             print("validation ===============================")
             correct_val = [0] * 100
             total_val = [0] * 100
-            val_loss = 0
+            val_loss = 0.0
             count = 0
 
             with torch.no_grad():
@@ -132,9 +137,9 @@ def main():
             for i in range(100):
                 temp = 100 * correct_val[i] / total_val[i]
                 accuracy_sum += temp
-            print('Validation Accuracy: ', accuracy_sum / 100, "Validation Loss: ", val_loss)
+            print('Validation Accuracy: ', accuracy_sum / 100, "Validation Loss: %.3f"%(val_loss))
             
-            val_accuracy_list.append(accuracy_sum)
+            val_accuracy_list.append(accuracy_sum / 100)
             val_loss_list.append(val_loss)
             
             print("==========================================")
