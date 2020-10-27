@@ -149,4 +149,8 @@ pytorch에서는 torch.nn.module을 상속받아서 직접 모델을 구성할 �
 
 그리고 def forward(x)를 통해서 Layer를 구성합니다.
 
+TinyImageNet이 64x64 이미지여서 실제 VGGNet의 Layer 수와 파라미터는 다를 수 있습니다.
+
+그리고, Dropout은 제가 임의로 추가한 작업이므로 없어도 상관 없습니다.
+
 
