@@ -215,27 +215,31 @@ opt.zero_grad()는 역전파를 하기 전 변화도를 0으로 만드는 작업
 그리고 역전파를 수행하고, optimizer의 step 함수를 호출하여 매개변수를 갱신합니다.
 
 ```
+correct_test = 0.0
+total_test = 0.0
+test_loss = 0.0
+count = 0
+accuracy_sum = 0
 with torch.no_grad():
     for test_data in test_loader:
         img, labels = test_data
-        img = img.cuda()
+        img, labels = img.to(device), labels.to(device)
 
         out, _ = model(img)
-        _, pred = torch.max(out, 1)
-        pred_item = pred.item()
-        label_item = labels.item()
-        pred_acc = (pred_item == label_item)
-        if pred_acc:
-            correct[label_item] += 1
-        total[label_item] += 1
-        
-accuracy_sum = 0
-for i in range(100):
-    temp = 100 * correct[i] / total[i]
-    print('Accuracy of %5s : %2d %%' % (
-        i, temp))
-    accuracy_sum += temp
-print('Accuracy average: ', accuracy_sum / 100)
+        _, predicted = torch.max(out, 1)
+        total_test += labels.size(0)
+        correct_test += predicted.eq(labels.data).sum().item()
+
+        accuracy_sum+=(correct_test / total_test) * 100
+
+        loss = criterion(out, labels)
+        test_loss += loss.item()
+
+        count+=1
+
+test_loss /= count
+
+print('Test Accuracy: %.3f'%(accuracy_sum / count), "Test Loss: %.3f"%(test_loss))
 ```
 
 위와 똑같이 test loader를 이용하여 Test Accuracy를 계산해줍니다.
