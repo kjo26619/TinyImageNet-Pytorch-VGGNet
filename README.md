@@ -252,7 +252,7 @@ Accuracy는 train은 꾸준히 상승하나 Validation은 일정 이상 올라�
 
 이는 epoch가 진행될 수록 overfitting 되고 있음을 의미합니다.
 
-https://github.com/kjo26619/TinyImageNet-Pytorch-VGGNet/blob/main/image/loss_vgg.png)
+![img3](https://github.com/kjo26619/TinyImageNet-Pytorch-VGGNet/blob/main/image/loss_vgg.png)
 
 Loss도 마찬가지로 train은 꾸준히 줄어드나 Validation은 일정 이상 학습이 overfitting 되고 있음을 의미합니다.
 
