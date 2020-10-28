@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 torch.cuda.device(0)
 
-
 def data_load():
     train_set = torchvision.datasets.ImageFolder(
         root='./TinyImageNet/train',
@@ -25,10 +24,9 @@ def data_load():
 
     train_loader = DataLoader(train_set, shuffle=True, batch_size=50, num_workers=8)
 
-    test_loader = DataLoader(test_set, shuffle=True)
+    test_loader = DataLoader(test_set, shuffle=True, batch_size=50)
 
     return train_loader, test_loader
-
 
 def new_plot(title, xlabel, ylabel, data_1, data_2, data_1_label, data_2_label):
     plt.figure(figsize=(10,5))
@@ -42,22 +40,24 @@ def new_plot(title, xlabel, ylabel, data_1, data_2, data_1_label, data_2_label):
     plt.show()
 
 
+
 def main():
     train_loader, test_loader = data_load()
     epochs = 20
-    PATH = './TinyImageNet/vgg_net.pth'
+    PATH = './TinyImageNet/result2.pt'
     load_model = False
-
+    torch.cuda.empty_cache()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+    
     print(torch.cuda.get_device_name(device))
+    
     
     train_loss_list = []
     val_loss_list = []
     train_accuracy_list = []
     val_accuracy_list = []
 
-    model = VGG_Net()
+    model = ResNet()
     if load_model:
         model.load_state_dict(torch.load(PATH))
         model = model.to(device)
@@ -78,7 +78,6 @@ def main():
             for i, img in enumerate(train_loader, 0):
                 inputs, labels = img
                 inputs, labels = inputs.to(device), labels.to(device)
-
                 
                 y_pred, feature = model(inputs)
 
@@ -91,7 +90,8 @@ def main():
                 _, predicted = torch.max(y_pred, 1)
                 total_train += labels.size(0)
                 correct_train += predicted.eq(labels.data).sum().item()
-                
+                #print(labels.size(0))
+                #print(predicted.eq(labels.data).sum().item())
                 temp_loss += loss.item()
                 temp_accuracy += (correct_train / total_train) * 100
                 running_loss += loss.item()
@@ -102,29 +102,27 @@ def main():
                           (epoch + 1, i + 1, temp_loss / 50, temp_accuracy / 50))
                     temp_loss = 0.0
                     temp_accuracy = 0.0
-                    
+                
             train_accuracy_list.append(train_accuracy / count)
             train_loss_list.append(running_loss / count)
  
             print("validation ===============================")
-            correct_val = [0] * 100
-            total_val = [0] * 100
+            correct_val = 0.0
+            total_val = 0.0
             val_loss = 0.0
             count = 0
-
+            accuracy_sum = 0
             with torch.no_grad():
                 for test_data in test_loader:
                     img, labels = test_data
                     img, labels = img.to(device), labels.to(device)
 
                     out, _ = model(img)
-                    _, pred = torch.max(out, 1)
-                    pred_item = pred.item()
-                    label_item = labels.item()
-                    pred_acc = (pred_item == label_item)
-                    if pred_acc:
-                        correct_val[label_item] += 1
-                    total_val[label_item] += 1
+                    _, predicted = torch.max(out, 1)
+                    total_val += labels.size(0)
+                    correct_val += predicted.eq(labels.data).sum().item()
+                    
+                    accuracy_sum+=(correct_val / total_val) * 100
                     
                     loss = criterion(out, labels)
                     val_loss += loss.item()
@@ -133,13 +131,9 @@ def main():
                     
             val_loss /= count
 
-            accuracy_sum = 0
-            for i in range(100):
-                temp = 100 * correct_val[i] / total_val[i]
-                accuracy_sum += temp
-            print('Validation Accuracy: ', accuracy_sum / 100, "Validation Loss: %.3f"%(val_loss))
+            print('Validation Accuracy: %.3f'%(accuracy_sum / count), "Validation Loss: %.3f"%(val_loss))
             
-            val_accuracy_list.append(accuracy_sum / 100)
+            val_accuracy_list.append(accuracy_sum / count)
             val_loss_list.append(val_loss)
             
             print("==========================================")
