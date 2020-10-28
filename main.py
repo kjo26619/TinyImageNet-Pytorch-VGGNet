@@ -57,7 +57,7 @@ def main():
     train_accuracy_list = []
     val_accuracy_list = []
 
-    model = ResNet()
+    model = cnn.VGG_Net()
     if load_model:
         model.load_state_dict(torch.load(PATH))
         model = model.to(device)
@@ -138,30 +138,31 @@ def main():
             
             print("==========================================")
             
-    correct = [0]*100
-    total = [0]*100
-
+    correct_test = 0.0
+    total_test = 0.0
+    test_loss = 0.0
+    count = 0
+    accuracy_sum = 0
     with torch.no_grad():
         for test_data in test_loader:
             img, labels = test_data
-            img = img.cuda()
+            img, labels = img.to(device), labels.to(device)
 
             out, _ = model(img)
-            _, pred = torch.max(out, 1)
-            pred_item = pred.item()
-            label_item = labels.item()
-            pred_acc = (pred_item == label_item)
-            if pred_acc:
-                correct[label_item] += 1
-            total[label_item] += 1
+            _, predicted = torch.max(out, 1)
+            total_test += labels.size(0)
+            correct_test += predicted.eq(labels.data).sum().item()
 
-    accuracy_sum = 0
-    for i in range(100):
-        temp = 100 * correct[i] / total[i]
-        print('Accuracy of %5s : %2d %%' % (
-            i, temp))
-        accuracy_sum += temp
-    print('Accuracy average: ', accuracy_sum / 100)
+            accuracy_sum+=(correct_test / total_test) * 100
+
+            loss = criterion(out, labels)
+            test_loss += loss.item()
+
+            count+=1
+
+    test_loss /= count
+
+    print('Test Accuracy: %.3f'%(accuracy_sum / count), "Test Loss: %.3f"%(test_loss))
 
     new_plot('Train Loss & Validation Loss', 'epochs', 'Traing loss', train_loss_list, val_loss_list, 'train', 'validation')
     new_plot('Train Accuracy & Validation Accuracy', 'epochs', 'Accuracy', train_accuracy_list, val_accuracy_list, 'train', 'validation')
